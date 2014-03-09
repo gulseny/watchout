@@ -1,34 +1,34 @@
-var svg = d3.select('body').append('svg');
-var w = window.innerWidth/1.2, h = window.innerHeight/1.1;
-svg.attr({width: w, height: h});
+// Window width and height
+var w = window.innerWidth;
+var h = window.innerHeight;
+var collisionCount = 0;
+var currentScore = 0;
+var count = 0;
+// var highScore = 0;
+// var currentScoreEl = d3.select('.current span').text();
+// var highScoreEl = d3.select('.high span').text();
 
-// Create Circle Constructor
-var Circle = function(){
-  this.class = 'enemy';
-  this.r = 10;
-  this.cx = Math.random() * w;
-  this.cy = Math.random() * h;
+// Make a Board function
+var makeBoard = function(width, heigth){
+  var svg = d3.select('body').append('svg');
+  svg.attr({width: w, height: h});
+  return svg;
 }
 
-// Create circles
-var appendCircle = function(array){
-  svg.selectAll('circle')
-  .data(array)
+var board = makeBoard(w,h);
+
+var appendCircle = function(svgEl){
+  svgEl.selectAll('circle')
+  .data(d3.range(10))
   .enter()
   .append('circle')
-  .attr('class', function(d){return d.class})
-  .attr('r', function(d){return d.r})
-  .attr('cx', function(d){return d.cx})
-  .attr('cy', function(d){return d.cy})
+  .attr('class', 'enemy')
+  .attr('r', 10)
+  .attr('cx', function(){ return Math.random() * svgEl.attr('width')})
+  .attr('cy', function(){ return Math.random() * svgEl.attr('height')})
 };
 
-var nCircles = function(n){
-  var arrayCircle = [];
-  for(var i = 0; i < n; i++){
-    arrayCircle.push(new Circle());
-  }
-  appendCircle(arrayCircle);
-};
+appendCircle(board);
 
 var makePlayer = function(){
   var oneCircle = d3.select('circle');
@@ -37,22 +37,18 @@ var makePlayer = function(){
   .attr('cy', h/2)
   .call(d3.behavior.drag().on("drag", move));
 }
-
-nCircles(5);
 makePlayer();
 
-// setInterval(callback, wait);
 setInterval(function(){
   var circles = d3.selectAll('.enemy');
-  circles
-    .transition()
+  circles.transition()
     .duration(1000)
     .attr('cx', function(d){return Math.random()* w})
     .attr('cy', function(d){return Math.random()* h});
     circles.each(function(d){
       checkCollision(d);
     });
-}, 1000);
+},1000);
 
 function move(){
     this.parentNode.appendChild(this);
@@ -82,12 +78,28 @@ var checkCollision = function(currentEnemy){
     var enemyY = d3.select(this).attr('cy');
 
     var distance = Math.sqrt(Math.pow(player.x - enemyX, 2) + Math.pow(player.y - enemyY, 2));
+    
+    currentScore++;
+    d3.select('.current span').text(currentScore);
 
     if(distance < 2 * r){
+      count++;
+
       console.log('collision');
+
+      d3.select('.collisions span').text(count);
+
+      // console.log('Current score:', currentScore);
+      // console.log('high score:', highScore);
+      
+      // d3.select('.current span').text();
+
+      if(parseInt(d3.select('.high span').text()) < currentScore){
+        d3.select('.high span').text(currentScore);
+      }
+      currentScore = 0;
     }
   })
-
 }
 
 setInterval(function(){
